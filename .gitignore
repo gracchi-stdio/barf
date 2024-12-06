@@ -1,0 +1,49 @@
+# Go
+/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Dependencies
+/vendor/
+/go.sum
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Database
+*.db
+*.sqlite
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Frontend
+/web/node_modules/
+/web/dist/
+/web/.cache/
+/web/coverage/
+.pnp.*
+.yarn/*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Logs
+*.log
+/logs/
