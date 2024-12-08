@@ -32,11 +32,4 @@ COPY . .
 # Install frontend dependencies
 RUN cd /app/web && npm install
 
-# Create startup script
-#RUN echo "#!/bin/sh\n\
-#cd /app/web && npm run dev & \n\
-#cd /app && air -c .air.toml" > /app/start.sh && \
-#chmod +x /app/start.sh
-#
-#CMD ["/app/start.sh"]
 CMD ["air", "-c", ".air.toml", "npm", "run", "dev"]
