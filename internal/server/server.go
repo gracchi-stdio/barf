@@ -56,5 +56,8 @@ func New(cfg *config.Config) *Server {
 }
 
 func (s *Server) Run() {
+	s.logger.Info().
+		Str("port", s.cfg.Server.Port).
+		Msg("starting server")
 	s.e.Logger.Fatal(s.e.Start(fmt.Sprintf(":%v", s.cfg.Server.Port)))
 }

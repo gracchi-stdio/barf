@@ -1,0 +1,39 @@
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile.bk
+    ports:
+      - "3000:3000"
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=barf
+      - DB_PASSWORD=secret
+      - DB_NAME=barf_db
+      - WORLDCAT_API_KEY=${WORLDCAT_API_KEY}
+    depends_on:
+      - postgres
+    networks:
+      - barf-network
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=barf
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=barf_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - barf-network
+
+networks:
+  barf-network:
+    driver: bridge
+    
+volumes:
+  postgres_data:
