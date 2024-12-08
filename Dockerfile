@@ -1,27 +1,42 @@
 FROM golang:1.23-alpine
 
-RUN apk add --no-cache nodejs npm nginx
+# Install Go
+RUN apk add --no-cache go git npm
+
+# Set Go environment variables
+ENV GOPATH /go
+ENV PATH $GOPATH/bin:$PATH
+
+# Create necessary directories
+RUN mkdir -p /app /go/bin
 
 WORKDIR /app
 
-# Go backend
+# Install Air for hot reload
+RUN go install github.com/air-verse/air@latest
+
+# Copy Go files
 COPY go.mod go.sum ./
 RUN go mod download
-COPY . .
 
-# Frontend
+
+# Set up frontend
 WORKDIR /app/web
 COPY web/package*.json ./
-RUN npm ci
-COPY web/ .
-RUN npm run build
+RUN npm install
 
+# Copy the rest of the application
 WORKDIR /app
-RUN go build -o barf-api ./cmd/http
+COPY . .
 
-RUN cp -r /app/web/dist/* /usr/share/nginx/html/
-COPY web/nginx.conf /etc/nginx/conf.d/default.conf
+# Install frontend dependencies
+RUN cd /app/web && npm install
 
-EXPOSE 3000 8080
-
-CMD ["sh", "-c", "nginx && ./barf-api"]
+# Create startup script
+#RUN echo "#!/bin/sh\n\
+#cd /app/web && npm run dev & \n\
+#cd /app && air -c .air.toml" > /app/start.sh && \
+#chmod +x /app/start.sh
+#
+#CMD ["/app/start.sh"]
+CMD ["air", "-c", ".air.toml", "npm", "run", "dev"]

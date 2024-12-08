@@ -1,0 +1,53 @@
+FROM golang:1.23-alpine AS api-builder
+
+RUN mkdir -p /app
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o barf-api ./cmd/http
+
+FROM node:20-alpine AS frontend-builder
+# Create and set working directory
+RUN mkdir -p /app/web
+WORKDIR /app/web
+# First, copy package files and install dependencies
+COPY web/package*.json ./
+# Initialize npm if package-lock.json doesn't exist
+RUN if [ ! -f package-lock.json ]; then npm init -y; fi
+# Install dependencies
+RUN npm install
+# Copy the rest of the frontend code
+COPY web/ .
+# Ensure src directory exists
+RUN mkdir -p src
+# Run the build
+RUN npm run build || (echo "Build failed" && exit 1)
+# Verify dist directory exists
+RUN ls -la dist || (echo "dist directory not found" && exit 1)
+
+FROM alpine:3.19
+RUN apk --no-cache add ca-certificates nginx && \
+    mkdir -p /run/nginx && \
+    mkdir -p /usr/share/nginx/html && \
+    chown -R nginx:nginx /usr/share/nginx && \
+    chmod -R 755 /usr/share/nginx/html
+
+WORKDIR /app
+# Copy API
+COPY --from=api-builder /app/barf-api .
+RUN chmod +x /app/barf-api
+
+# Copy frontend build files
+COPY --from=frontend-builder /app/web/dist/ /usr/share/nginx/html/
+COPY web/nginx.conf /etc/nginx/http.d/default.conf
+
+# Verify files
+RUN ls -la /usr/share/nginx/html
+RUN ls -la /etc/nginx/http.d/default.conf
+RUN nginx -t
+
+EXPOSE 3000 8080
+
+CMD ["sh", "-c", "nginx && ./barf-api"]

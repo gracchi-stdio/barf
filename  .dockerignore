@@ -1,1 +1,8 @@
-.COPY
+.git
+.gitignore
+README.md
+build-container/docker-compose.yml
+build-container/Dockerfile.bk
+tmp/
+web/node_modules/
+web/dist/
