@@ -1,0 +1,2 @@
+App:
+  Env: "Development" # Development or Production

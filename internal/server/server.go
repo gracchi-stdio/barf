@@ -5,39 +5,27 @@ import (
 	"github.com/gracchi-stdio/barf/internal/config"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"os"
-	"time"
 )
 
 type Server struct {
-	e      *echo.Echo
-	cfg    *config.Config
-	logger zerolog.Logger
-}
-
-func init() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{
-		Out:        os.Stdout,
-		TimeFormat: time.RFC3339,
-	})
-
+	e   *echo.Echo
+	cfg *config.Config
 }
 
 func New(cfg *config.Config) *Server {
-	logger := log.With().Str("component", "server").Logger()
-
 	e := echo.New()
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:    true,
 		LogStatus: true,
 		LogMethod: true,
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-			logger.Info().
+			log.Info().
 				Str("method", v.Method).
 				Str("uri", v.URI).
 				Int("status", v.Status).
+				Dur("latency", v.Latency).
+				Str("user-agent", c.Request().UserAgent()).
 				Msg("request")
 			return nil
 		},
@@ -49,15 +37,16 @@ func New(cfg *config.Config) *Server {
 	})
 
 	return &Server{
-		e:      e,
-		cfg:    cfg,
-		logger: logger,
+		e:   e,
+		cfg: cfg,
 	}
 }
 
 func (s *Server) Run() {
-	s.logger.Info().
+	log.Info().
 		Str("port", s.cfg.Server.Port).
 		Msg("starting server")
-	s.e.Logger.Fatal(s.e.Start(fmt.Sprintf(":%v", s.cfg.Server.Port)))
+	if err := s.e.Start(fmt.Sprintf(":%v", s.cfg.Server.Port)); err != nil {
+		log.Fatal().Err(err).Msg("failed to start server")
+	}
 }

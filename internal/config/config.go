@@ -5,6 +5,11 @@ import "github.com/spf13/viper"
 type Server struct {
 	Port string
 }
+
+type App struct {
+	ENV string
+}
+
 type Config struct {
 	Server Server
 }
@@ -12,6 +17,9 @@ type Config struct {
 func Load() (*Config, error) {
 
 	viper.SetDefault("server.port", "8080")
+	viper.SetDefault("app.env", "development")
+
+	viper.SetConfigName("config")
 
 	viper.AutomaticEnv()
 
