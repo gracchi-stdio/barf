@@ -1,20 +1,32 @@
 
 services:
-  app:
+  frontend:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+
+
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000" # Frontend port
-      - "8080:8080" # Backend port
+      - "8080:8080"
       - "2345:2345" # Debug port
     environment:
       - DB_HOST=postgres
       - DB_USER=barf
       - DB_PASSWORD=secret
       - DB_NAME=barf_db
-      - WORLDCAT_API_KEY=${WORLDCAT_API_KEY}
-      - ENVIRONMENT=development
+      - ENV=development
     depends_on:
       - postgres
     volumes:

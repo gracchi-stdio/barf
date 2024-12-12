@@ -35,7 +35,7 @@ func Setup(cfg Config) {
 			Out:        os.Stdout,
 			TimeFormat: time.RFC850,
 			NoColor:    false,
-		}).With().Timestamp().Logger()
+		}).With().Timestamp().Caller().Logger()
 	} else {
 		logger = zerolog.New(os.Stderr).With().Timestamp().Logger()
 	}
