@@ -7,12 +7,15 @@ import (
 	httphandler "github.com/gracchi-stdio/barf/internal/handler/http"
 	"github.com/gracchi-stdio/barf/internal/repository"
 	"github.com/gracchi-stdio/barf/internal/service"
+	"github.com/gracchi-stdio/barf/pkg/bookfetcher"
+	"github.com/gracchi-stdio/barf/pkg/bookfetcher/providers/googlebooks"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"net/http"
+	"time"
 )
 
 type Server struct {
@@ -87,8 +90,19 @@ func (s *Server) setupRoutes() {
 	bookRepo := repository.NewBookRepository(s.db)
 	inventoryRepo := repository.NewInventoryRepository(s.db)
 
+	// google books fetcher
+	googleProvider := googlebooks.NewGoogleBooksProvider("", 5*time.Second)
+
+	// initialize fetchers
+	fetchers := map[string]bookfetcher.BookFetcher{
+		"googlebooks": googleProvider,
+	}
 	// initialize services
-	bookService := service.NewBookService(bookRepo, inventoryRepo)
+	bookService := service.NewBookService(
+		bookRepo,
+		inventoryRepo,
+		fetchers,
+		"googlebooks")
 
 	// initialize handlers
 	bookHandler := httphandler.NewBookHandler(bookService)

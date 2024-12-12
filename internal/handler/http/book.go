@@ -68,7 +68,7 @@ func (h *BookHandler) UpdateBook(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := h.BookService.UpdataBook(c.Request().Context(), &book); err != nil {
+	if err := h.BookService.UpdateBook(c.Request().Context(), &book); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
